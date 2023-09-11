@@ -4,8 +4,7 @@
   "description": "A client library for interacting with the Notion API",
   "scripts": {
     "build": "tsc -p .",
-    "test": "jest --silent",
-    "dev": "ts-node src/main.ts"
+    "test": "jest --silent"
   },
   "keywords": [],
   "author": "",
