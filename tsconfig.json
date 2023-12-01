@@ -7,8 +7,8 @@
     "outDir": "./dist",
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "types": []
+    "types": ["node"]
   },
   "include": ["src", "src/index.ts"],
-  "exclude": ["**/__tests__/**", "node_modules/**"]
+  "exclude": ["**/__tests__/**", "node_modules/**", "test_output/**"]
 }

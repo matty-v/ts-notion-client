@@ -8,3 +8,5 @@
 
 # debug
 /npm-debug.log*
+.env
+/test_output

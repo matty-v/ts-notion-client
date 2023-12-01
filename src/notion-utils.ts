@@ -6,7 +6,7 @@ import {
   NotionProp,
   NotionProperties,
   NotionPropertyType,
-  NotionRichTextSegment,
+  NotionRichTextSegment
 } from './types';
 
 export const formatPropValues = (propValues: DbPropValue[]): NotionProperties => {
