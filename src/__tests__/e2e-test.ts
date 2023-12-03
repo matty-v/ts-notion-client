@@ -1,6 +1,7 @@
 import { writeFile } from 'node:fs/promises';
 import { join } from 'path';
-import { archivePage, createPageInDatabase, fetchDatabaseById, fetchPageById, fetchPagesInDatabase } from '../notion-client';
+import { archivePage, createPageInDatabase, fetchDatabaseById, fetchPageById, fetchPageContent, fetchPagesInDatabase } from '../notion-client';
+import { convertBlocksToMarkdown } from '../notion-utils';
 import { DbPropValue, NotionPropertyType } from '../types';
 
 export const run = async () => {
@@ -25,10 +26,16 @@ export const run = async () => {
   const newDbPage = await createPageInDatabase(notionApiKey, database.id, createTestPageProperties(), 'E2E DB test page test content');
   await writeToFile('createPageInDatabase.json', JSON.stringify(newDbPage, null, 2));
 
-  const fetchedPage = await fetchPageById(notionApiKey, newDbPage.id);
+  const fetchedPage = await fetchPageById(notionApiKey, testPageId);
   await writeToFile('fetchPageById.json', JSON.stringify(fetchedPage, null, 2));
 
-  const archivedPage = await archivePage(notionApiKey, fetchedPage.id);
+  const pageContent = await fetchPageContent(notionApiKey, fetchedPage.id);
+  await writeToFile('fetchPageContent.json', JSON.stringify(pageContent, null, 2));
+
+  const convertedMarkdown = convertBlocksToMarkdown(pageContent);
+  await writeToFile('convertBlocksToMarkdown.md', convertedMarkdown);
+
+  const archivedPage = await archivePage(notionApiKey, newDbPage.id);
   await writeToFile('archivePage.json', JSON.stringify(archivedPage, null, 2));
 
   console.log('ts-notion-client e2e test is complete!');

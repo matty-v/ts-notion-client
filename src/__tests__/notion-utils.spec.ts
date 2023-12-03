@@ -1,6 +1,6 @@
 import { describe, expect, test } from '@jest/globals';
-import { convertMarkdownToBlocks, formatLinkSegment, formatPropValues } from '../notion-utils';
-import { BlockType, DbPropValue, NotionParagraphBlock, NotionPropertyType } from '../types';
+import { convertBlocksToMarkdown, convertMarkdownToBlocks, convertRichTextSegmentsToMarkdown, formatLinkSegment, formatPropValues, getPropValueFromPage } from '../notion-utils';
+import { DbPropValue, NotionBlock, NotionBlockType, NotionPageObject, NotionParagraphBlock, NotionPropertyType, NotionRichTextSegment } from '../types';
 
 const createDbPropValue = (propType: NotionPropertyType, propVal?: string): DbPropValue => {
   return {
@@ -131,7 +131,42 @@ describe('Format Prop Values', () => {
 });
 
 describe('Get Property Value from Page', () => {
-  test('gets a rich_text property value', () => {});
+  test('gets a title property value', () => {
+    const titleVal = getPropValueFromPage(testPage as NotionPageObject, NotionPropertyType.title, 'Name');
+    expect(titleVal).toBe('e2e-test page');
+  });
+  test('gets a rich_text property value', () => {
+    const richTextVal = getPropValueFromPage(testPage as NotionPageObject, NotionPropertyType.rich_text, 'Description');
+    expect(richTextVal).toBe('this is an e2e generated test page');
+  });
+  test('gets a multi_select property value', () => {
+    const multiSelectVal = getPropValueFromPage(testPage as NotionPageObject, NotionPropertyType.multi_select, 'Tags');
+    expect(multiSelectVal).toBe('tag 1, tag 2');
+  });
+  test('gets a select property value', () => {
+    const selectVal = getPropValueFromPage(testPage as NotionPageObject, NotionPropertyType.select, 'Select');
+    expect(selectVal).toBe('Option 2');
+  });
+  test('gets a date property value', () => {
+    const dateVal = getPropValueFromPage(testPage as NotionPageObject, NotionPropertyType.date, 'Date');
+    expect(dateVal).toBe('2023-11-30');
+  });
+  test('gets a last_edited_time property value', () => {
+    const lastEditedTimeVal = getPropValueFromPage(testPage as NotionPageObject, NotionPropertyType.last_edited_time, 'Last edited time');
+    expect(lastEditedTimeVal).toBe('2023-12-01T03:10:00.000Z');
+  });
+  test('gets a created_time property value', () => {
+    const createdTimeVal = getPropValueFromPage(testPage as NotionPageObject, NotionPropertyType.created_time, 'Created time');
+    expect(createdTimeVal).toBe('2023-11-30T23:32:00.000Z');
+  });
+  test('gets a number property value', () => {
+    const numberVal = getPropValueFromPage(testPage as NotionPageObject, NotionPropertyType.number, 'Number');
+    expect(numberVal).toBe('2');
+  });
+  test('gets a checkbox property value', () => {
+    const checkboxVal = getPropValueFromPage(testPage as NotionPageObject, NotionPropertyType.checkbox, 'Checkbox');
+    expect(checkboxVal).toBe('true');
+  });
 });
 
 describe('Converts markdown to blocks', () => {
@@ -141,7 +176,7 @@ describe('Converts markdown to blocks', () => {
     const expectedBlocks: NotionParagraphBlock[] = [
       {
         object: 'block',
-        type: BlockType.paragraph,
+        type: NotionBlockType.paragraph,
         paragraph: {
           rich_text: [
             {
@@ -187,7 +222,6 @@ describe('Converts markdown to blocks', () => {
 
     expect(blocks).toStrictEqual(expectedBlocks);
   });
-
   test('handles no content', () => {
     const actualBlock = convertMarkdownToBlocks('');
     expect(actualBlock).toBe(null);
@@ -198,7 +232,7 @@ describe('Converts markdown to blocks', () => {
     const expectedBlocks = [
       {
         object: 'block',
-        type: BlockType.paragraph,
+        type: NotionBlockType.paragraph,
         paragraph: {
           rich_text: [
             {
@@ -219,7 +253,7 @@ describe('Converts markdown to blocks', () => {
     const expectedBlocks = [
       {
         object: 'block',
-        type: BlockType.paragraph,
+        type: NotionBlockType.paragraph,
         paragraph: {
           rich_text: [
             {
@@ -233,7 +267,7 @@ describe('Converts markdown to blocks', () => {
       } as NotionParagraphBlock,
       {
         object: 'block',
-        type: BlockType.paragraph,
+        type: NotionBlockType.paragraph,
         paragraph: {
           rich_text: [
             {
@@ -274,3 +308,403 @@ describe('Converts markdown to blocks', () => {
   });
   test('handles images', () => {});
 });
+
+describe('Converts blocks to markdown', () => {
+  test('convert blocks', () => {
+
+    const expectedMarkdown = "# Heading *1*\n## Heading **2**\n### Heading 3\n- **Bold** and *italics*\nOne more **bold**\n";
+
+    const blocks = [
+      {
+        object: 'block',
+        type: NotionBlockType.heading_1,
+        heading_1: {
+          rich_text: [
+            {
+              type: 'text',
+              annotations: {
+                bold: false,
+                italic: false,
+                code: false,
+                color: 'default',
+                strikethrough: false,
+                underline: false
+              },
+              text: {
+                content: 'Heading '
+              },
+              plain_text: 'Heading '
+            },
+            {
+              type: 'text',
+              annotations: {
+                bold: false,
+                italic: true,
+                code: false,
+                color: 'default',
+                strikethrough: false,
+                underline: false
+              },
+              text: {
+                content: '1'
+              },
+              plain_text: '1'
+            }
+          ]
+        }
+      },
+      {
+        object: 'block',
+        type: NotionBlockType.heading_2,
+        heading_2: {
+          rich_text: [
+            {
+              type: 'text',
+              annotations: {
+                bold: false,
+                italic: false,
+                code: false,
+                color: 'default',
+                strikethrough: false,
+                underline: false
+              },
+              text: {
+                content: 'Heading '
+              },
+              plain_text: 'Heading '
+            },
+            {
+              type: 'text',
+              annotations: {
+                bold: true,
+                italic: false,
+                code: false,
+                color: 'default',
+                strikethrough: false,
+                underline: false
+              },
+              text: {
+                content: '2'
+              },
+              plain_text: '2'
+            }
+          ]
+        }
+      },
+      {
+        object: 'block',
+        type: NotionBlockType.heading_3,
+        heading_3: {
+          rich_text: [
+            {
+              type: 'text',
+              annotations: {
+                bold: false,
+                italic: false,
+                code: false,
+                color: 'default',
+                strikethrough: false,
+                underline: false
+              },
+              text: {
+                content: 'Heading 3'
+              },
+              plain_text: 'Heading 3'
+            }
+          ]
+        }
+      },
+      {
+        object: 'block',
+        type: NotionBlockType.bulleted_list_item,
+        bulleted_list_item: {
+          rich_text: [
+            {
+              type: 'text',
+              annotations: {
+                bold: true,
+                italic: false,
+                code: false,
+                color: 'default',
+                strikethrough: false,
+                underline: false
+              },
+              text: {
+                content: 'Bold'
+              },
+              plain_text: 'Bold'
+            },
+            {
+              type: 'text',
+              annotations: {
+                bold: false,
+                italic: false,
+                code: false,
+                color: 'default',
+                strikethrough: false,
+                underline: false
+              },
+              text: {
+                content: ' and '
+              },
+              plain_text: ' and '
+            },
+            {
+              type: 'text',
+              annotations: {
+                bold: false,
+                italic: true,
+                code: false,
+                color: 'default',
+                strikethrough: false,
+                underline: false
+              },
+              text: {
+                content: 'italics'
+              },
+              plain_text: 'italics'
+            }
+          ]
+        }
+      },
+      {
+        object: 'block',
+        type: NotionBlockType.paragraph,
+        paragraph: {
+          rich_text: [
+            {
+              type: 'text',
+              annotations: {
+                bold: false,
+                italic: false,
+                code: false,
+                color: 'default',
+                strikethrough: false,
+                underline: false
+              },
+              text: {
+                content: 'One more '
+              },
+              plain_text: 'One more '
+            },
+            {
+              type: 'text',
+              annotations: {
+                bold: true,
+                italic: false,
+                code: false,
+                color: 'default',
+                strikethrough: false,
+                underline: false
+              },
+              text: {
+                content: 'bold'
+              },
+              plain_text: 'bold'
+            }
+          ]
+        }
+      }
+    ]
+
+    const markdown = convertBlocksToMarkdown(blocks as NotionBlock[]);
+
+    expect(markdown).toBe(expectedMarkdown);
+
+  });
+  test('convert rich text segments to markdown', () => {
+    const richTextSegments: NotionRichTextSegment[] = [
+      {
+        type: 'text',
+        annotations: {
+          bold: false,
+          italic: false,
+          code: false,
+          color: 'default',
+          strikethrough: false,
+          underline: false
+        },
+        text: {
+          content: 'This '
+        },
+        plain_text: 'This '
+      },
+      {
+        type: 'text',
+        annotations: {
+          bold: true,
+          italic: false,
+          code: false,
+          color: 'default',
+          strikethrough: false,
+          underline: false
+        },
+        text: {
+          content: 'is a'
+        },
+        plain_text: 'is a'
+      },
+      {
+        type: 'text',
+        annotations: {
+          bold: false,
+          italic: false,
+          code: false,
+          color: 'default',
+          strikethrough: false,
+          underline: false
+        },
+        text: {
+          content: ' '
+        },
+        plain_text: ' '
+      },
+      {
+        type: 'text',
+        annotations: {
+          bold: false,
+          italic: true,
+          code: false,
+          color: 'default',
+          strikethrough: false,
+          underline: false
+        },
+        text: {
+          content: 'paragraph'
+        },
+        plain_text: 'paragraph'
+      },
+    ]
+
+    const markdown = convertRichTextSegmentsToMarkdown(richTextSegments);
+
+    expect(markdown).toBe('This **is a** *paragraph*');
+  });
+})
+
+const testPage = {
+  "object": "page",
+  "id": "abc123",
+  "created_time": "2023-12-01T17:22:00.000Z",
+  "last_edited_time": "2023-12-01T17:22:00.000Z",
+  "created_by": {
+    "object": "user",
+    "id": "abc123"
+  },
+  "last_edited_by": {
+    "object": "user",
+    "id": "abc123"
+  },
+  "cover": null,
+  "icon": null,
+  "parent": {
+    "type": "database_id",
+    "database_id": "abc123"
+  },
+  "archived": false,
+  "properties": {
+    "Date": {
+      "id": "Gcfj",
+      "type": "date",
+      "date": {
+        "start": "2023-11-30",
+        "end": null,
+        "time_zone": null
+      }
+    },
+    "Select": {
+      "id": "%5B%5D%3Ae",
+      "type": "select",
+      "select": {
+        "id": "y_Jq",
+        "name": "Option 2",
+        "color": "default"
+      }
+    },
+    "Description": {
+      "id": "%5CuD~",
+      "type": "rich_text",
+      "rich_text": [
+        {
+          "type": "text",
+          "text": {
+            "content": "this is an e2e generated test page",
+            "link": null
+          },
+          "annotations": {
+            "bold": false,
+            "italic": false,
+            "strikethrough": false,
+            "underline": false,
+            "code": false,
+            "color": "default"
+          },
+          "plain_text": "this is an e2e generated test page",
+          "href": null
+        }
+      ]
+    },
+    "Checkbox": {
+      "id": "_r%3Bc",
+      "type": "checkbox",
+      "checkbox": true
+    },
+    "Number": {
+      "id": "hvE~",
+      "type": "number",
+      "number": 2
+    },
+    "Tags": {
+      "id": "ypDA",
+      "type": "multi_select",
+      "multi_select": [
+        {
+          "id": "abc123",
+          "name": "tag 1",
+          "color": "pink"
+        },
+        {
+          "id": "abc123",
+          "name": " tag 2",
+          "color": "brown"
+        }
+      ]
+    },
+    "Name": {
+      "id": "title",
+      "type": "title",
+      "title": [
+        {
+          "type": "text",
+          "text": {
+            "content": "e2e-test page",
+            "link": null
+          },
+          "annotations": {
+            "bold": false,
+            "italic": false,
+            "strikethrough": false,
+            "underline": false,
+            "code": false,
+            "color": "default"
+          },
+          "plain_text": "e2e-test page",
+          "href": null
+        }
+      ]
+    },
+    "Last edited time": {
+      "id": "f%5Dyy",
+      "type": "last_edited_time",
+      "last_edited_time": "2023-12-01T03:10:00.000Z"
+    },
+    "Created time": {
+      "id": "zOOS",
+      "type": "created_time",
+      "created_time": "2023-11-30T23:32:00.000Z"
+    }
+  },
+  "url": "https://www.notion.so/abc123",
+  "public_url": null,
+  "request_id": "abc123"
+}

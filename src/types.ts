@@ -83,30 +83,57 @@ export type NotionProp = {
   id: string;
   type: NotionPropertyType;
   name?: string;
-  rich_text?: NotionRichTextSegment[];
 };
+
+export type NotionRichTextProp = NotionProp & {
+  rich_text: NotionRichTextSegment[];
+}
 
 export type NotionStatusProp = NotionProp & {
   status: {
     options: NotionSelectOption[];
-  };
+  } | NotionSelectOption;
 };
 
 export type NotionSelectProp = NotionProp & {
   select: {
     options: NotionSelectOption[];
-  };
+  } | NotionSelectOption;
 };
 
 export type NotionMultiSelectProp = NotionProp & {
   multi_select: {
     options: NotionSelectOption[];
-  };
+  } | NotionSelectOption[];
 };
 
 export type NotionTitleProp = NotionProp & {
   title: NotionTitle[] | {};
 };
+
+export type NotionCheckboxProp = NotionProp & {
+  checkbox: boolean;
+}
+
+export type NotionNumberProp = NotionProp & {
+  number: number;
+}
+
+export type NotionDateProp = NotionProp & {
+  date: {
+    start: string; // "2023-11-30"
+    end: string | null;
+    time_zone: string | null;
+  }
+}
+
+export type NotionLastEditedTimeProp = NotionProp & {
+  last_edited_time: string | {};
+}
+
+export type NotionCreatedTimeProp = NotionProp & {
+  created_time: string | {};
+}
 
 export type NotionSelectOption = {
   id: string;
@@ -130,11 +157,35 @@ export type IconProp = {
 
 export type NotionBlock = {
   object: 'block';
-  type: BlockType;
+  type: NotionBlockType;
 };
 
 export type NotionParagraphBlock = NotionBlock & {
   paragraph: {
+    rich_text: NotionRichTextSegment[];
+  };
+};
+
+export type NotionHeading1Block = NotionBlock & {
+  heading_1: {
+    rich_text: NotionRichTextSegment[];
+  };
+};
+
+export type NotionHeading2Block = NotionBlock & {
+  heading_2: {
+    rich_text: NotionRichTextSegment[];
+  };
+};
+
+export type NotionHeading3Block = NotionBlock & {
+  heading_3: {
+    rich_text: NotionRichTextSegment[];
+  };
+};
+
+export type NotionBulletedListItemBlock = NotionBlock & {
+  bulleted_list_item: {
     rich_text: NotionRichTextSegment[];
   };
 };
@@ -159,8 +210,12 @@ export type NotionRichTextSegment = {
   href?: string;
 };
 
-export enum BlockType {
+export enum NotionBlockType {
   paragraph = 'paragraph',
+  heading_1 = 'heading_1',
+  heading_2 = 'heading_2',
+  heading_3 = 'heading_3',
+  bulleted_list_item = 'bulleted_list_item'
 }
 
 export type DbPropValue = {

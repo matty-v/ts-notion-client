@@ -1,6 +1,6 @@
 import axios, { AxiosRequestConfig } from 'axios';
 import { convertMarkdownToBlocks, formatPropValues } from './notion-utils';
-import { DbPropValue, NotionDatabaseObject, NotionPageObject, NotionParagraphBlock, NotionProperties } from './types';
+import { DbPropValue, NotionBlock, NotionDatabaseObject, NotionPageObject, NotionParagraphBlock, NotionProperties } from './types';
 
 const notionApiUrl = 'https://api.notion.com/v1';
 const notionVersion = '2022-06-28';
@@ -169,7 +169,7 @@ export const fetchPageByIdRequest = (apiToken: string, pageId: string): AxiosReq
   };
 }
 
-export const fetchPageById = async (apiToken :string, pageId: string): Promise<NotionPageObject> => {
+export const fetchPageById = async (apiToken: string, pageId: string): Promise<NotionPageObject> => {
 
   let page: NotionPageObject;
 
@@ -182,6 +182,44 @@ export const fetchPageById = async (apiToken :string, pageId: string): Promise<N
   }
 
   return page;
+}
+
+export const fetchPageContentRequest = (apiToken: string, pageId: string, start_cursor: string = ''): AxiosRequestConfig => {
+
+  let url = `${notionApiUrl}/blocks/${pageId}/children?page_size=100`;
+  if (start_cursor) {
+    url += `&start_cursor=${start_cursor}`;
+  }
+
+  return {
+    url,
+    method: 'get',
+    headers: addHeaders(apiToken)
+  };
+}
+
+export const fetchPageContent = async (
+  apiToken: string,
+  pageId: string,
+  existingBlocks: NotionBlock[] = [],
+  start_cursor: string = ''
+): Promise<NotionBlock[]> => {
+  const pageContent: NotionBlock[] = existingBlocks;
+
+  try {
+    const response = await axios(fetchPageContentRequest(apiToken, pageId, start_cursor));
+    pageContent.push(...response.data.results);
+
+    if (response.data['has_more']) {
+      console.log('fetching more page content...');
+      await fetchPageContent(apiToken, pageId, existingBlocks, response.data['next_cursor']);
+    }
+  } catch (e) {
+    console.log(`Failed to fetch page content for page with ID [${pageId}]`);
+    console.error(e);
+  }
+
+  return pageContent;
 }
 
 const addHeaders = (apiToken: string): any => {

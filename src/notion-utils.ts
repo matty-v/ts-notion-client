@@ -1,12 +1,27 @@
 import {
-  BlockType,
   DbPropValue,
+  NotionBlock,
+  NotionBlockType,
+  NotionBulletedListItemBlock,
+  NotionCheckboxProp,
+  NotionCreatedTimeProp,
+  NotionDateProp,
+  NotionHeading1Block,
+  NotionHeading2Block,
+  NotionHeading3Block,
+  NotionLastEditedTimeProp,
+  NotionMultiSelectProp,
+  NotionNumberProp,
   NotionPageObject,
   NotionParagraphBlock,
   NotionProp,
   NotionProperties,
   NotionPropertyType,
-  NotionRichTextSegment
+  NotionRichTextProp,
+  NotionRichTextSegment,
+  NotionSelectOption,
+  NotionSelectProp,
+  NotionTitleProp
 } from './types';
 
 export const formatPropValues = (propValues: DbPropValue[]): NotionProperties => {
@@ -166,7 +181,7 @@ export const convertMarkdownToBlocks = (markdownContent: string): NotionParagrap
 
       blocks.push({
         object: 'block',
-        type: BlockType.paragraph,
+        type: NotionBlockType.paragraph,
         paragraph: {
           rich_text: segments,
         },
@@ -175,6 +190,82 @@ export const convertMarkdownToBlocks = (markdownContent: string): NotionParagrap
   });
 
   return blocks;
+};
+
+export const convertBlocksToMarkdown = (blocks: NotionBlock[]): string => {
+  let markdown = '';
+
+  for (let block of blocks) {
+    switch (block.type) {
+      case NotionBlockType.paragraph:
+        const paragraphBlock = block as NotionParagraphBlock;
+        markdown = markdown.concat(`${convertParagraphBlockToMarkdown(paragraphBlock)}\n`)
+        break;
+      case NotionBlockType.heading_1:
+        const heading1Block = block as NotionHeading1Block;
+        markdown = markdown.concat(`${convertHeading1BlockToMarkdown(heading1Block)}\n`)
+        break;
+      case NotionBlockType.heading_2:
+        const heading2Block = block as NotionHeading2Block;
+        markdown = markdown.concat(`${convertHeading2BlockToMarkdown(heading2Block)}\n`)
+        break;
+      case NotionBlockType.heading_3:
+        const heading3Block = block as NotionHeading3Block;
+        markdown = markdown.concat(`${convertHeading3BlockToMarkdown(heading3Block)}\n`)
+        break;
+      case NotionBlockType.bulleted_list_item:
+        const bulletedListItemBlock = block as NotionBulletedListItemBlock;
+        markdown = markdown.concat(`${convertBulletedListItemToMarkdown(bulletedListItemBlock)}\n`)
+        break;
+      default:
+        break;
+    }
+  }
+
+  return markdown;
+}
+
+export const convertParagraphBlockToMarkdown = (paragraphBlock: NotionParagraphBlock): string => {
+  return convertRichTextSegmentsToMarkdown(paragraphBlock.paragraph.rich_text);
+}
+
+export const convertHeading1BlockToMarkdown = (heading1Block: NotionHeading1Block): string => {
+  return `# ${convertRichTextSegmentsToMarkdown(heading1Block.heading_1.rich_text)}`;
+}
+
+export const convertHeading2BlockToMarkdown = (heading2Block: NotionHeading2Block): string => {
+  return `## ${convertRichTextSegmentsToMarkdown(heading2Block.heading_2.rich_text)}`;
+}
+
+export const convertHeading3BlockToMarkdown = (heading3Block: NotionHeading3Block): string => {
+  return `### ${convertRichTextSegmentsToMarkdown(heading3Block.heading_3.rich_text)}`;
+}
+
+export const convertBulletedListItemToMarkdown = (bulletedListItemBlock: NotionBulletedListItemBlock): string => {
+  return `- ${convertRichTextSegmentsToMarkdown(bulletedListItemBlock.bulleted_list_item.rich_text)}`;
+}
+
+export const convertRichTextSegmentsToMarkdown = (richTextSegments: NotionRichTextSegment[]): string => {
+  let richTextMarkdown = '';
+  for (let segment of richTextSegments) {
+    richTextMarkdown = richTextMarkdown.concat(convertRichTextSegmentToMarkdown(segment));
+  }
+
+  return richTextMarkdown;
+}
+
+export const convertRichTextSegmentToMarkdown = (richTextSegment: NotionRichTextSegment): string => {
+  let markdown = richTextSegment.plain_text;
+
+  if (richTextSegment.annotations?.bold) {
+    markdown = `**${markdown}**`;
+  }
+
+  if (richTextSegment.annotations?.italic) {
+    markdown = `*${markdown}*`;;
+  }
+
+  return markdown;
 };
 
 export const formatTextSegment = (text: string): NotionRichTextSegment => {
@@ -228,9 +319,43 @@ export const getPropValueFromPage = (
   try {
     switch (propType) {
       case NotionPropertyType.rich_text:
-        propValue = prop.rich_text[0].plain_text;
+        const richTextProp = prop as NotionRichTextProp;
+        propValue = richTextProp.rich_text[0].plain_text;
         break;
-
+      case NotionPropertyType.title:
+        const titleProp = prop as NotionTitleProp;
+        propValue = titleProp.title[0].plain_text;
+        break;
+      case NotionPropertyType.multi_select:
+        const multiSelectProp = prop as NotionMultiSelectProp;
+        const options = multiSelectProp.multi_select as NotionSelectOption[];
+        propValue = options.map(o => o.name).join(',');
+        break;
+      case NotionPropertyType.select:
+        const selectProp = prop as NotionSelectProp;
+        const option = selectProp.select as NotionSelectOption;
+        propValue = option.name;
+        break;
+      case NotionPropertyType.date:
+        const dateProp = prop as NotionDateProp;
+        propValue = dateProp.date.start;
+        break;
+      case NotionPropertyType.created_time:
+        const createdTimeProp = prop as NotionCreatedTimeProp;
+        propValue = createdTimeProp.created_time as string;
+        break;
+      case NotionPropertyType.last_edited_time:
+        const lastEditedTimeProp = prop as NotionLastEditedTimeProp;
+        propValue = lastEditedTimeProp.last_edited_time as string;
+        break;
+      case NotionPropertyType.number:
+        const numberProp = prop as NotionNumberProp;
+        propValue = numberProp.number.toString();
+        break;
+      case NotionPropertyType.checkbox:
+        const checkboxProp = prop as NotionCheckboxProp;
+        propValue = String(checkboxProp.checkbox);
+        break;
       default:
         break;
     }
