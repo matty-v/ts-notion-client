@@ -165,7 +165,7 @@ describe('Get Property Value from Page', () => {
   });
   test('gets a checkbox property value', () => {
     const checkboxVal = getPropValueFromPage(testPage as NotionPageObject, NotionPropertyType.checkbox, 'Checkbox');
-    expect(checkboxVal).toBe('true');
+    expect(checkboxVal).toBe('false');
   });
 });
 
@@ -647,7 +647,7 @@ const testPage = {
     "Checkbox": {
       "id": "_r%3Bc",
       "type": "checkbox",
-      "checkbox": true
+      "checkbox": false
     },
     "Number": {
       "id": "hvE~",

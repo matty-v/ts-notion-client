@@ -255,7 +255,7 @@ export const convertRichTextSegmentsToMarkdown = (richTextSegments: NotionRichTe
 }
 
 export const convertRichTextSegmentToMarkdown = (richTextSegment: NotionRichTextSegment): string => {
-  let markdown = richTextSegment.plain_text;
+  let markdown = richTextSegment.text.content;
 
   if (richTextSegment.annotations?.bold) {
     markdown = `**${markdown}**`;
