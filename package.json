@@ -1,6 +1,6 @@
 {
   "name": "ts-notion-client",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "A client library for interacting with the Notion API",
   "scripts": {
     "build": "tsc -p .",
