@@ -4,6 +4,7 @@
   "description": "A client library for interacting with the Notion API",
   "scripts": {
     "build": "tsc -p .",
+    "publish": "npm run build && npm run test && npm publish",
     "test": "jest --silent",
     "e2e-test": "ts-node -e \"import('./src/__tests__/e2e-test').then(module => module.run())\"",
     "e2e-test-linux": "export $(cat .env | xargs) && npm run e2e-test",
