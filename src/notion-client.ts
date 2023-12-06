@@ -65,7 +65,8 @@ export const createNewPage = async (
     const response = await axios(requestConfig);
     createdPage = response.data;
   } catch (e) {
-    console.error(e);
+    console.log('Failed to create new page!');
+    throw e;
   }
 
   return createdPage;
@@ -92,7 +93,7 @@ export const archivePage = async (apiToken: string, pageId: string): Promise<Not
     page = response.data;
   } catch (e) {
     console.log(`Failed to archive page with ID [${pageId}]`);
-    console.error(e);
+    throw e;
   }
 
   return page;
@@ -132,7 +133,7 @@ export const fetchPagesInDatabase = async (
     }
   } catch (e) {
     console.log(`Failed to fetch pages for database with ID [${databaseId}]`);
-    console.error(e);
+    throw e;
   }
 
   return pages;
@@ -155,7 +156,7 @@ export const fetchDatabaseById = async (apiToken: string, databaseId: string): P
     db = response.data;
   } catch (e) {
     console.log(`Failed to fetch database with ID [${databaseId}]`);
-    console.error(e);
+    throw e;
   }
 
   return db;
@@ -178,7 +179,7 @@ export const fetchPageById = async (apiToken: string, pageId: string): Promise<N
     page = response.data;
   } catch (e) {
     console.log(`Failed to fetch page with ID [${pageId}]`);
-    console.error(e);
+    throw e;
   }
 
   return page;
@@ -216,7 +217,7 @@ export const fetchPageContent = async (
     }
   } catch (e) {
     console.log(`Failed to fetch page content for page with ID [${pageId}]`);
-    console.error(e);
+    throw e;
   }
 
   return pageContent;
